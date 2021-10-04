@@ -1,0 +1,32 @@
+# Topic Metadata
+type TopicMetadata {
+  name: String!,
+  partitions: [PartitionMetadata!]!
+}
+
+type PartitionMetadata {
+  partitionErrorCode: Int!
+  partitionId: Int!
+  leader: Int!
+  replicas: [Int!]!
+  isr: [Int!]!
+  offlineReplicas: [Int!]
+}
+
+
+"The root query"
+type Query {
+
+  "List all topics from kafka"
+  listTopics(
+    "Filter topics name with the given Regexp."
+    search: String
+  ): [String!]!
+
+  "Get the metadata for a topic"
+  getTopicMetadata(
+    "The name of topics to fetch metadata for."
+    topics: [String!]!
+  ): [TopicMetadata!]!
+
+}
