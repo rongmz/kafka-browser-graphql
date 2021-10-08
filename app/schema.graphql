@@ -1,9 +1,10 @@
-# Topic Metadata
+"Topic Metadata"
 type TopicMetadata {
-  name: String!,
+  name: String!
   partitions: [PartitionMetadata!]!
 }
 
+"Partition metadata"
 type PartitionMetadata {
   partitionErrorCode: Int!
   partitionId: Int!
@@ -13,6 +14,102 @@ type PartitionMetadata {
   offlineReplicas: [Int!]
 }
 
+"Topic offset seek data"
+type TopicOffsetData {
+  partition: Int!
+  offset: String!
+  high: String
+  low: String
+  metadata: String
+}
+
+type BrokerInfo {
+  nodeId: Int!
+  host: String!
+  port: Int!
+}
+
+type ClusterInfo {
+  brokers: [BrokerInfo!]!
+  controller: Int
+  clusterId: String!
+}
+
+enum ConfigResourceType {
+  UNKNOWN
+  TOPIC
+  BROKER
+  BROKER_LOGGER
+}
+
+input ResourceConfigQueryInput {
+  type: ConfigResourceType!
+  name: String!
+  configNames: [String!]
+}
+
+type ConfigSynonyms {
+  configName: String
+  configValue: String
+  configSource: Int
+}
+
+type ConfigEntries {
+  configName: String
+  configValue: String
+  isDefault: Boolean
+  isSensitive: Boolean
+  readOnly: Boolean
+  configSynonyms: [ConfigSynonyms!]
+}
+
+type DescribeConfigResourceResponseType {
+  configEntries: [ConfigEntries!]
+  errorCode: Int
+  errorMessage: String
+  resourceName: String
+  resourceType: ConfigResourceType
+}
+
+type DescribeConfigResponseType {
+  resources: [DescribeConfigResourceResponseType!]
+  throttleTime: Int
+}
+
+type GroupOverview {
+  groupId: String
+  protocolType: String
+}
+
+type GroupDescription {
+  groupId: String
+  members: [MemberDescription!]!
+  protocol: String
+  protocolType: String
+  state: String
+}
+
+type MemberDescription {
+  clientHost: String
+  clientId: String
+  memberId: String
+  memberAssignment: String
+  memberMetadata: String
+}
+
+input TopicConfigInput {
+  topic: String!
+  numPartitions: Int
+  replicationFactor: Int
+  replicaAssignment: [String]
+  configEntries: [String]
+}
+
+input TopicPartitionConfigInput {
+  topic: String!
+  count: Int!
+  assignments: [[Int!]]
+}
 
 "The root query"
 type Query {
@@ -28,5 +125,70 @@ type Query {
     "The name of topics to fetch metadata for."
     topics: [String!]!
   ): [TopicMetadata!]!
+
+  "Get offset information for a topic based on given criteria"
+  getTopicOffsets(
+    "The topic name"
+    topic: String!,
+    "Timestamp in unix format"
+    timestamp: Int
+  ): [TopicOffsetData!]!
+
+  "Get offset information based on consumer groups"
+  getConsumerGroupOffsets(
+    "The topic name"
+    topic: String!,
+    "The consumer group id"
+    groupId: String!,
+    "Whether to resolve offsets"
+    resolveOffsets: Boolean
+  ): [TopicOffsetData!]!
+
+  "Get description about the kafka cluster"
+  describeCluster: ClusterInfo!
+
+  "Get description about the configs"
+  describeConfigs(
+    includeSynonyms: Boolean = false,
+    resources: [ResourceConfigQueryInput!] = []
+  ): DescribeConfigResponseType
+
+  "List all groups available to kafka broker"
+  listGroups: [GroupOverview!]!
+
+  "Describe the given groups"
+  describeGroups(
+    "The group ids to describe for"
+    groupIds: [String!]!
+  ): [GroupDescription!]!
+
+}
+
+"The mutation type of the system"
+type Mutation {
+
+  "Delete topics"
+  deleteTopics(
+    "The list of topic names"
+    topics: [String!]!,
+    "Optional timeout"
+    timeout: Int
+  ): Boolean!
+
+
+  "Create a topic to kafka broker"
+  createTopics(
+    validateOnly: Boolean,
+    waitForLeaders: Boolean,
+    timeout: Int,
+    topics: [TopicConfigInput!]!
+  ): Boolean!
+
+  "Create partition for topics"
+  createPartitions(
+    validateOnly: Boolean,
+    timeout: Int,
+    topicPartitions: [TopicPartitionConfigInput!]!
+  ): Boolean!
 
 }
