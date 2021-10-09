@@ -7,6 +7,7 @@ const fs = require('fs')
 const schemaResolvers = require('./schemaResolvers')
 
 const app = express();
+const PORT = process.env.PORT || 4000
 
 // load the schema file
 const SCHEMA_PATH = process.env.SCHEMA_PATH || (__dirname + '/schema.graphql')
@@ -24,6 +25,6 @@ app.use('/', graphqlHTTP({
   graphiql: true,
 }));
 
-app.listen(4000);
+app.listen(PORT);
 
-console.log('Running a GraphQL API server at http://localhost:4000/');
+console.log(`Running a GraphQL API server at http://localhost:${PORT}/`);
