@@ -111,6 +111,30 @@ input TopicPartitionConfigInput {
   assignments: [[Int!]]
 }
 
+input SeekEntryInput {
+  partition: Int
+  offset: String
+}
+
+input ResourceConfigInput {
+  type: ConfigResourceType
+  name: String
+  configEntries: [ConfigEntryInput!]!
+}
+
+input ConfigEntryInput {
+  name: String
+  value: String
+}
+
+type DeleteGroupsResult {
+  groupId: String!
+  errorCode: Int
+  error: String
+}
+
+#------------------------------------------------
+
 "The root query"
 type Query {
 
@@ -164,6 +188,7 @@ type Query {
 
 }
 
+#------------------------------------------------
 "The mutation type of the system"
 type Mutation {
 
@@ -189,6 +214,60 @@ type Mutation {
     validateOnly: Boolean,
     timeout: Int,
     topicPartitions: [TopicPartitionConfigInput!]!
+  ): Boolean!
+
+  "Reset offsets for consumer groups"
+  resetConsumerGroupOffsets(
+    "The consumer group"
+    groupId: String!,
+    "The topic"
+    topic: String!,
+    "By default it will reset for earliest"
+    earliest: Boolean = true
+  ): Boolean!
+
+  "Reset offsets for consumer groups by given timestamp"
+  resetConsumerGroupOffsetsByTimestamp(
+    "The consumer group"
+    groupId: String!,
+    "The topic"
+    topic: String!,
+    "provide the timestamp to reset topic to."
+    timestamp: Int!
+  ): Boolean!
+
+  "Reset offsets for consumer groups"
+  setConsumerGroupOffsets(
+    "The consumer group"
+    groupId: String!,
+    "The topic"
+    topic: String!,
+    "The input configuartion for seek entry"
+    partitions: [SeekEntryInput!]!
+  ): Boolean!
+
+  "Alter configuration for given resources"
+  alterConfigs(
+    validateOnly: Boolean = false,
+    resources: [ResourceConfigInput!]!
+  ): DescribeConfigResponseType!
+
+  "Delete groups by group ids"
+  deleteGroups(
+    "Array of group ids"
+    groupIds: [String!]!
+  ): [DeleteGroupsResult!]
+
+  "Delete topic records"
+  deleteTopicRecords(
+    "The topic to delete records from"
+    topic: String!,
+    """delete upto the given offset.
+    Example:
+    { partition: 0, offset: '30' }, // delete up to and including offset 29
+    { partition: 3, offset: '-1' }, // delete all available records on this partition
+    """
+    partitions: [SeekEntryInput!]!
   ): Boolean!
 
 }

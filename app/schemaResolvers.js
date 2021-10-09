@@ -1,6 +1,13 @@
 const kafka = require('./kafka');
 const kafkaAdmin = kafka.admin()
 
+const ConfigResourceType = {
+  UNKNOWN: 0,
+  TOPIC: 2,
+  BROKER: 4,
+  BROKER_LOGGER: 8
+}
+
 module.exports = {
 
   /**
@@ -61,12 +68,6 @@ module.exports = {
    * @param {*} param0
    */
   describeConfigs: async ({ includeSynonyms, resources }) => {
-    const ConfigResourceType = {
-      UNKNOWN: 0,
-      TOPIC: 2,
-      BROKER: 4,
-      BROKER_LOGGER: 8
-    }
     const result = await kafkaAdmin.describeConfigs({
       includeSynonyms,
       resources: resources.map(r => ({
@@ -130,6 +131,79 @@ module.exports = {
    */
   createPartitions: async ({ validateOnly, timeout, topicPartitions }) => {
     await kafkaAdmin.createPartitions({ validateOnly, timeout, topicPartitions })
+    return true
+  },
+
+  /**
+   * Reset offsets for consumer groups
+   * @param {*} param0
+   * @returns
+   */
+  resetConsumerGroupOffsets: async ({ groupId, topic, earliest }) => {
+    await kafkaAdmin.resetOffsets({ groupId, topic, earliest })
+    return true
+  },
+
+  /**
+   * Reset offsets for consumer groups by timestamp
+   * @param {*} param0
+   * @returns
+   */
+  resetConsumerGroupOffsetsByTimestamp: async ({ groupId, topic, timestamp }) => {
+    await kafkaAdmin.setOffsets({
+      groupId, topic,
+      partitions: await kafkaAdmin.fetchTopicOffsetsByTimestamp(topic, timestamp)
+    })
+    return true
+  },
+
+  /**
+   * Set offsets for consumer groups
+   * @param {*} param0
+   * @returns
+   */
+  setConsumerGroupOffsets: async ({ groupId, topic, partitions }) => {
+    await kafkaAdmin.setOffsets({ groupId, topic, partitions })
+    return true
+  },
+
+  /**
+   * Alter resource configurations
+   * @param {*} param0
+   * @returns
+   */
+  alterConfigs: async ({ validateOnly, resources }) => {
+    const result = await kafkaAdmin.alterConfigs({
+      validateOnly,
+      resources: resources.map(r => ({
+        type: ConfigResourceType[r.type],
+        name: r.name,
+        configEntries: r.configEntries,
+      }))
+    })
+    return {
+      ...result,
+      resources: (result.resources || []).map(r => {
+        r.resourceType = ConfigResourceType[r.resourceType]
+        return r;
+      })
+    }
+  },
+
+  /**
+   * Delete groups by group id
+   * @param {*} param0
+   */
+  deleteGroups: async ({ groupIds }) => {
+    return (await kafkaAdmin.deleteGroups(groupIds))
+      .map(r => ({
+        ...r,
+        error: r.error?.stack
+      }))
+  },
+
+  deleteTopicRecords: async ({topic, partitions}) => {
+    await kafkaAdmin.deleteTopicRecords({topic, partitions})
     return true
   }
 
