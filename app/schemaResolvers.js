@@ -202,10 +202,24 @@ module.exports = {
       }))
   },
 
-  deleteTopicRecords: async ({topic, partitions}) => {
-    await kafkaAdmin.deleteTopicRecords({topic, partitions})
+  deleteTopicRecords: async ({ topic, partitions }) => {
+    await kafkaAdmin.deleteTopicRecords({ topic, partitions })
     return true
-  }
+  },
+
+  /**
+   * Endpoint for publishing messages to kafka.
+   * @param {*} param0
+   * @returns
+   */
+  publishRecords: async ({ producerConfig, recordBatch }) => {
+    const producer = kafka.producer(producerConfig)
+    await producer.connect()
+    const metadata = await producer.sendBatch({
+      topicMessages: recordBatch
+    })
+    return metadata
+  },
 
 }
 

@@ -133,6 +133,47 @@ type DeleteGroupsResult {
   error: String
 }
 
+input ProducerConfigInput {
+  retry: RetryOptionsInput
+  metadataMaxAge: Int
+  allowAutoTopicCreation: Boolean
+  idempotent: Boolean
+  transactionalId: String
+  transactionTimeout: Int
+  maxInFlightRequests: Int
+}
+
+input RetryOptionsInput {
+  maxRetryTime: Int
+  initialRetryTime: Int
+  factor: Float
+  multiplier: Int
+  retries: Int
+}
+
+input RecordBatch {
+  topic: String!
+  messages: [Message!]!
+}
+
+input Message {
+  key: String
+  value: String!
+  partition: Int
+  timestamp: String
+}
+
+type RecordMetadata {
+  topicName: String!
+  partition: Int!
+  errorCode: Int
+  offset: String
+  timestamp: String
+  baseOffset: String
+  logAppendTime: String
+  logStartOffset: String
+}
+
 #------------------------------------------------
 
 "The root query"
@@ -269,5 +310,13 @@ type Mutation {
     """
     partitions: [SeekEntryInput!]!
   ): Boolean!
+
+  "Use this endpoint to publish a array of events/records into the kafka cluster."
+  publishRecords(
+    "(Optional) The config for the kafkajs producer"
+    producerConfig: ProducerConfigInput,
+    "The batch of records"
+    recordBatch: [RecordBatch!]!
+  ): [RecordMetadata!]!
 
 }
