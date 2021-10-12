@@ -1,4 +1,4 @@
-const kafka = require('./kafka');
+const { kafka, dataPath } = require('./kafka');
 const kafkaAdmin = kafka.admin()
 
 const ConfigResourceType = {
@@ -7,6 +7,10 @@ const ConfigResourceType = {
   BROKER: 4,
   BROKER_LOGGER: 8
 }
+
+// This variable contains the timeout ids for all created consumers
+let consumerTimeouts = {}
+
 
 module.exports = {
 
@@ -221,5 +225,21 @@ module.exports = {
     return metadata
   },
 
-}
 
+  startConsumer: async ({ groupId, consumeTimeout, topics }) => {
+    const _groupId = groupId || `consumer-${Date.now()}`
+    const timeout = parseFloat(consumeTimeout || '60') * 1000
+    const consumer = kafka.consumer({
+      groupId: _groupId
+    })
+    // clear timeout if it exists
+    if (consumerTimeouts[_groupId])
+      clearTimeout(consumerTimeouts[_groupId])
+    setTimeout(() => {
+      consumer.disconnect()
+    }, timeout)
+    // setup consumer
+
+  }
+
+}

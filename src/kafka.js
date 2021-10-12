@@ -6,12 +6,17 @@ const CONNECTION_TIMEOUT = +(process.env.CONNECTION_TIMEOUT || '1000')
 const REQUEST_TIMEOUT = +(process.env.REQUEST_TIMEOUT || '30000')
 
 const client = new Kafka({
-    clientId: APP_NAME,
-    brokers: KAFKA_BROKERS,
-    connectionTimeout: CONNECTION_TIMEOUT,
-    requestTimeout: REQUEST_TIMEOUT
+  clientId: APP_NAME,
+  brokers: KAFKA_BROKERS,
+  connectionTimeout: CONNECTION_TIMEOUT,
+  requestTimeout: REQUEST_TIMEOUT
 })
 
 console.log(`Kafka client initialized: ${!!client}.\nBrokers: ${KAFKA_BROKERS.join(',')}`)
 
-module.exports = client
+const dataPath = "/var/tmp/kafka-browser-graphql"
+
+module.exports = {
+  kafka: client,
+  dataPath
+}

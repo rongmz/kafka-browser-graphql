@@ -174,6 +174,16 @@ type RecordMetadata {
   logStartOffset: String
 }
 
+input TopicSubscription {
+  topic: String!
+  fromBeginning: Boolean
+}
+
+type ConsumerResponse {
+  topic: String!
+  downloadUrl: String!
+}
+
 #------------------------------------------------
 
 "The root query"
@@ -318,5 +328,15 @@ type Mutation {
     "The batch of records"
     recordBatch: [RecordBatch!]!
   ): [RecordMetadata!]!
+
+  "Start a consumer with given settings. It will write all consumed records into a file and return the download url."
+  startConsumer(
+    "The consumer groupId, if not given, then a randomly assigned one will be used"
+    groupId: String,
+    "A timeout (in seconds), till when the consumer will consume. Default 1 minute."
+    consumeTimeout: Int,
+    "Topic subscription requests"
+    topics: [TopicSubscription!]!
+  ): [ConsumerResponse!]!
 
 }
