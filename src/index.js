@@ -24,6 +24,7 @@ fs.mkdirSync(dataPath, { recursive: true })
 fs.accessSync(dataPath, fs.constants.R_OK | fs.constants.W_OK)
 console.log(`Data path is accssible.`)
 
+app.use('/d', express.static(dataPath))
 
 app.use('/', graphqlHTTP({
   schema,

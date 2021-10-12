@@ -1,5 +1,6 @@
 const { kafka, dataPath } = require('./kafka');
 const kafkaAdmin = kafka.admin()
+const fs = require('fs')
 
 const ConfigResourceType = {
   UNKNOWN: 0,
@@ -229,9 +230,8 @@ module.exports = {
   startConsumer: async ({ groupId, consumeTimeout, topics }) => {
     const _groupId = groupId || `consumer-${Date.now()}`
     const timeout = parseFloat(consumeTimeout || '60') * 1000
-    const consumer = kafka.consumer({
-      groupId: _groupId
-    })
+    const consumer = kafka.consumer({ groupId: _groupId })
+    await consumer.connect()
     // clear timeout if it exists
     if (consumerTimeouts[_groupId])
       clearTimeout(consumerTimeouts[_groupId])
@@ -239,7 +239,31 @@ module.exports = {
       consumer.disconnect()
     }, timeout)
     // setup consumer
-
-  }
+    const downloadTemplate = `${process.env.DOWNLOAD_URL_TEMPLATE || 'http://localhost:4000'}/d`
+    // subscribe to all topics
+    const returnValue = (topics || []).map(async topic => {
+      await consumer.subscribe(topic)
+      console.log('subsription done', topic)
+      return {
+        topic: topic.topic,
+        downloadUrl: `${downloadTemplate}/${_groupId}-${topic.topic}.txt`
+      }
+    })
+    // now process for each message
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        // write to individual
+        try {
+          fs.appendFileSync(`${dataPath}/${_groupId}-${topic}.txt`,
+            `partition=${partition}\nkey=${message.key.toString()}\nvalue=${message.value.toString()}\nheaders=${JSON.stringify(message.headers)}\n----`
+          )
+        } catch (e) {
+          console.error('Error while consuming ', topic, partition)
+        }
+      },
+    })
+    // return the topics
+    return returnValue
+  },
 
 }

@@ -14,7 +14,7 @@ const client = new Kafka({
 
 console.log(`Kafka client initialized: ${!!client}.\nBrokers: ${KAFKA_BROKERS.join(',')}`)
 
-const dataPath = "/var/tmp/kafka-browser-graphql"
+const dataPath = process.env.DATA_PATH || "/var/tmp/kafka-browser-graphql"
 
 module.exports = {
   kafka: client,
