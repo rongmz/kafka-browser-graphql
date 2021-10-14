@@ -1,6 +1,6 @@
 {
   "name": "kafka-browser-graphql",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kafka topics browser api in graphql",
   "main": "index.js",
   "scripts": {

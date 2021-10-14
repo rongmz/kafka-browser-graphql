@@ -1,6 +1,7 @@
 const { kafka, dataPath } = require('./kafka');
 const kafkaAdmin = kafka.admin()
-const fs = require('fs')
+const fs = require('fs');
+const { GraphQLError } = require('graphql');
 
 const ConfigResourceType = {
   UNKNOWN: 0,
@@ -258,7 +259,8 @@ module.exports = {
             `partition=${partition}\nkey=${message.key.toString()}\nvalue=${message.value.toString()}\nheaders=${JSON.stringify(message.headers)}\n----`
           )
         } catch (e) {
-          console.error('Error while consuming ', topic, partition)
+          console.error('Error while consuming ', topic, partition, e)
+          throw new GraphQLError(`Error while consuming topic=${topic} partition=${partition}`)
         }
       },
     })
