@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node-dev src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "docker:build": "docker build . -t rongmz/kafka-browser-graphql:1.0.1"
   },
   "keywords": [
     "Graphql",
