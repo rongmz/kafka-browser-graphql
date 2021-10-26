@@ -256,7 +256,7 @@ module.exports = {
         // write to individual
         try {
           fs.appendFileSync(`${dataPath}/${_groupId}-${topic}.txt`,
-            `partition=${partition} [${message.offset}]\nTS=${message.timestamp}\nkey=${message.key?.toString()}\nvalue=${message.value?.toString()}\nheaders=${JSON.stringify(message.headers||{})}\n----`
+            `partition=${partition} [${message.offset}]\nTS=${message.timestamp}\nkey=${message.key?.toString()}\nvalue=${message.value?.toString()}\nheaders=${JSON.stringify(message.headers||{})}\n----\n`
           )
         } catch (e) {
           console.error('Error while consuming ', topic, partition, e)
